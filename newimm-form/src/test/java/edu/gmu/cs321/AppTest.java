@@ -65,7 +65,7 @@ public class AppTest
     	assertEquals(form, GenealogyRequestForm.getFormById(formId));
 	}
 
-    @Test
+	@Test
 	public void testUpdateRequesterAddress() {
     	GenealogyRequestForm form = new GenealogyRequestForm(
         	"Mark Johnson", "111 Maple Ave", "citizenship.pdf",
