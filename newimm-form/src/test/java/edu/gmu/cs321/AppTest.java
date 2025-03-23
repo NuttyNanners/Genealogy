@@ -9,14 +9,6 @@ import org.junit.Test;
  */
 public class AppTest 
 {
-    /**
-     * Rigorous Test :-)
-     */
-	@Test
-	public void shouldAnswerWithTrue()
-	{
-	assertTrue( true );
-	}
     
 	@Test
 	public void testCreateValidForm() {
@@ -77,5 +69,14 @@ public class AppTest
 	}
 
     //Contribution Table: Above tests designed by Zachary Fowler
+
+	/**
+     * Rigorous Test :-)
+     */
+	@Test
+	public void shouldAnswerWithTrue()
+	{
+	assertTrue( true );
+	}
 
 }
