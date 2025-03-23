@@ -12,13 +12,13 @@ public class AppTest
     /**
      * Rigorous Test :-)
      */
-    @Test
-    public void shouldAnswerWithTrue()
-    {
-        assertTrue( true );
-    }
+	@Test
+	public void shouldAnswerWithTrue()
+	{
+	assertTrue( true );
+	}
     
-    @Test
+	@Test
 	public void testCreateValidForm() {
     	GenealogyRequestForm form = new GenealogyRequestForm(
         	"Geddy Lee", "110 Green St", "citizenship.pdf",
