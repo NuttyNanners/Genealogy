@@ -2,6 +2,7 @@ package org.openjfx;
 
 import java.io.File;
 import java.time.LocalDate;
+import java.util.UUID;
 
 public class GenealogyRequestForm {
     private String requesterName;
@@ -13,6 +14,8 @@ public class GenealogyRequestForm {
     private String countryOfOrigin;
     private File proofOfRelationshipFile;
     private File deathRecordFile;
+    private final String formID = UUID.randomUUID.toString();
+    
 
     public GenealogyRequestForm(String requesterName, String requesterAddress, String requesterSSN,
                                 String deceasedName, String deceasedAddress, LocalDate dateOfDeath, 
