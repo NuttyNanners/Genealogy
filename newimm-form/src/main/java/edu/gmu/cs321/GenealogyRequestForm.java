@@ -14,7 +14,7 @@ public class GenealogyRequestForm {
     private String countryOfOrigin;
     private File proofOfRelationshipFile;
     private File deathRecordFile;
-    private final String formID = UUID.randomUUID.toString();
+    private final String formID = UUID.randomUUID().toString();
     
 
     public GenealogyRequestForm(String requesterName, String requesterAddress, String requesterSSN,
