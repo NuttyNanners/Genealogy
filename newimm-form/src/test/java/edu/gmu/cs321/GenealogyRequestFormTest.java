@@ -11,7 +11,7 @@ public class GenealogyRequestFormTest {
 	@Test
 	public void testCreateValidForm() {
     	GenealogyRequestForm form = new GenealogyRequestForm(
-        	"Geddy Lee", "110 Green St", "citizenship.pdf",
+        	"Geddy Lee", "110 Green St", "333-22-1234",
         	"Tom Sawyer", "222 Blue Dr", "2000-01-15", "Canada",
         	"relationship.pdf", "deathRecord.pdf"
     	);
@@ -24,7 +24,7 @@ public class GenealogyRequestFormTest {
 	public void testCreateInvalidForm_MissingName() {
     	Exception exception = assertThrows(IllegalArgumentException.class, () -> {
         	new GenealogyRequestForm(
-            	"", "123 One St", "citizenship.pdf",
+            	"", "123 One St", "333-22-1234",
             	"Jane Doe", "454 Two St", "1993-02-04",”Guatemala",
             	"relationship.pdf", "death_record.pdf"
         	);
