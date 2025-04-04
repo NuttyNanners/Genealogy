@@ -47,7 +47,7 @@ public class GenealogyRequestFormTest {
 	@Test
 	public void testGetFormById() {
     	GenealogyRequestForm form = new GenealogyRequestForm(
-        	"Alicia Keys", "789 Up St", "citizenship.pdf",
+        	"Alicia Keys", "789 Up St", "333-22-1234",
         	"Brass Keys", "321 Down St", "1995-06-22", "UK",
         	"relationship.pdf", "death_record.pdf"
     	);
@@ -58,7 +58,7 @@ public class GenealogyRequestFormTest {
   	@Test
 	public void testUpdateRequesterAddress() {
     	GenealogyRequestForm form = new GenealogyRequestForm(
-        	"Homer Johnson", "111 Maple Ave", "citizenship.pdf",
+        	"Homer Johnson", "111 Maple Ave", "333-22-1234",
         	"Lisa Johnson", "222 Birch Rd", "1980-12-10", "France",
         	"relationship.pdf", "death_record.pdf"
     	);
