@@ -1,6 +1,7 @@
-package org.openjfx;
+package edu.gmu.cs321;
 
 import java.io.File;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,6 +27,10 @@ public class DataEntryScreen extends Application {
     private File deathRecordFile;
 
     private final List<GenealogyRequestForm> reviewerQueue = new ArrayList<>();
+
+    private Date convertToDate(LocalDate localDate) {
+    return java.sql.Date.valueOf(localDate);
+    }
 
     @Override
     public void start(Stage primaryStage) {
@@ -65,7 +70,7 @@ public class DataEntryScreen extends Application {
                 requesterSSNField.getText(),
                 deceasedNameField.getText(),
                 deceasedAddressField.getText(),
-                deathDatePicker.getValue(),
+                convertToDate(deathDatePicker.getValue()),
                 countryBox.getValue(),
                 proofOfRelationshipFile,
                 deathRecordFile

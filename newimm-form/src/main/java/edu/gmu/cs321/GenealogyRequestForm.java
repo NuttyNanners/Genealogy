@@ -1,7 +1,7 @@
-package org.openjfx;
+package edu.gmu.cs321;
 
 import java.io.File;
-import java.time.LocalDate;
+import java.util.Date;
 import java.util.UUID;
 
 public class GenealogyRequestForm {
@@ -10,7 +10,7 @@ public class GenealogyRequestForm {
     private String requesterSSN;
     private String deceasedName;
     private String deceasedAddress;
-    private LocalDate dateOfDeath;
+    private Date dateOfDeath;
     private String countryOfOrigin;
     private File proofOfRelationshipFile;
     private File deathRecordFile;
@@ -18,7 +18,7 @@ public class GenealogyRequestForm {
     
 
     public GenealogyRequestForm(String requesterName, String requesterAddress, String requesterSSN,
-                                String deceasedName, String deceasedAddress, LocalDate dateOfDeath, 
+                                String deceasedName, String deceasedAddress, Date dateOfDeath, 
                                 String countryOfOrigin, File proofOfRelationshipFile, File deathRecordFile) {
         this.requesterName = requesterName;
         this.requesterAddress = requesterAddress;
@@ -33,6 +33,6 @@ public class GenealogyRequestForm {
 
     @Override
     public String toString() {
-        return "Request for: " + deceasedName + " by " + requesterName;
+        return "Form ID: " + formID + ", Request for: " + deceasedName + " by " + requesterName;
     }
 }
