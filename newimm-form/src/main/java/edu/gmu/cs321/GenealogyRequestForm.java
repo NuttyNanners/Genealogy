@@ -35,4 +35,42 @@ public class GenealogyRequestForm {
     public String toString() {
         return "Form ID: " + formID + ", Request for: " + deceasedName + " by " + requesterName;
     }
+
+
+    public String getRequesterName(){
+        return requesterName;
+    }
+
+    public String getRequesterAddress() {
+        return requesterAddress;
+    }
+
+    public String getRequesterSSN() {
+        return requesterSSN;
+    }
+
+    public String getDeceasedName() {
+        return deceasedName;
+    }
+
+    public String getDeceasedAddress() {
+        return deceasedAddress;
+    }
+
+    public Date getDateOfDeath() {
+        return dateOfDeath;
+    }
+
+    public String getCountryOfOrigin() {
+        return countryOfOrigin;
+    }
+
+    public File getProofOfRelationshipFile() {
+        return proofOfRelationshipFile;
+    }
+
+    public File getDeathRecordFile() {
+        return deathRecordFile;
+    }
 }
+
