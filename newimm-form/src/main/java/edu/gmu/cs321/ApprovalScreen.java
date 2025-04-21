@@ -53,7 +53,6 @@ public class ApprovalScreen extends Application {
         infoBox.setPadding(new Insets(10));
         infoBox.setStyle("-fx-border-color: gray; -fx-border-width: 1; -fx-border-radius: 5;");
 
-        // Display image (if exists)
         File imageFile = requestForm.getProofOfRelationshipFile();
         if (imageFile != null && imageFile.exists()) {
             try {
