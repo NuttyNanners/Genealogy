@@ -72,5 +72,9 @@ public class GenealogyRequestForm {
     public File getDeathRecordFile() {
         return deathRecordFile;
     }
+    
+    public String getFormID() {
+        return formID;
+    }
 }
 

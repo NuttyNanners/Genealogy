@@ -13,25 +13,39 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import main.java.edu.gmu.cs321.GenealogyFormDatabase;
+
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.Date;
 
 public class ApprovalScreen extends Application {
-
-    private GenealogyRequestForm requestForm = new GenealogyRequestForm(
-            "Jane Doe", 
-            "123 Main St", 
-            "123-45-6789", 
-            "John Doe", 
-            "456 Elm St", 
-            new java.util.Date(), 
-            "USA", 
-            new File("path/to/proofImage.png"), 
-            new File("path/to/deathRecord.pdf")
-    );
+    private GenealogyRequestForm requestForm;
+    private GenealogyRequestForm testRequestForm;
 
     @Override
     public void start(Stage primaryStage) {
+        String basePath = System.getProperty("user.dir") + File.separator + "data";
+        GenealogyRequestForm testRequestForm = new GenealogyRequestForm(
+                "Jane Doe",
+                "123 Main St",
+                "123-45-6789",
+                "John Doe",
+                "456 Elm St",
+                new Date(),
+                "USA",
+                new File(basePath, "janeDoe.png"),
+                new File(basePath,"deathRecord.pdf")
+        );
+
+        GenealogyFormDatabase.insertFormData(testRequestForm, testRequestForm.getFormID());
+        requestForm = GenealogyFormDatabase.getFormDataByID(testRequestForm.getFormID());
+
+        if (requestForm == null) {
+            System.out.println("Form not found...");
+            return;
+        }
+
         primaryStage.setTitle("Request Approval");
         BorderPane root = new BorderPane();
         root.setPadding(new Insets(20));
@@ -40,6 +54,7 @@ public class ApprovalScreen extends Application {
         infoBox.setPadding(new Insets(10));
         infoBox.setStyle("-fx-border-color: gray; -fx-border-width: 1; -fx-border-radius: 5;");
 
+        // Display image (if exists)
         File imageFile = requestForm.getProofOfRelationshipFile();
         if (imageFile != null && imageFile.exists()) {
             try {
@@ -53,23 +68,21 @@ public class ApprovalScreen extends Application {
             }
         }
 
-        Label requesterNameLabel = new Label("Requester Name: " + requestForm.getRequesterName());
-        Label requesterAddressLabel = new Label("Requester Address: " + requestForm.getRequesterAddress());
-        Label requesterSSNLabel = new Label("Requester SSN: " + requestForm.getRequesterSSN());
-        Label deceasedNameLabel = new Label("Deceased Name: " + requestForm.getDeceasedName());
-        Label deceasedAddressLabel = new Label("Deceased Address: " + requestForm.getDeceasedAddress());
-        Label dateOfDeathLabel = new Label("Date of Death: " + requestForm.getDateOfDeath().toString());
-        Label countryLabel = new Label("Country of Origin: " + requestForm.getCountryOfOrigin());
-
+        // Display metadata
         infoBox.getChildren().addAll(
-                requesterNameLabel,
-                requesterAddressLabel,
-                requesterSSNLabel,
-                deceasedNameLabel,
-                deceasedAddressLabel,
-                dateOfDeathLabel,
-                countryLabel
+                new Label("Requester Name: " + requestForm.getRequesterName()),
+                new Label("Requester Address: " + requestForm.getRequesterAddress()),
+                new Label("Requester SSN: " + requestForm.getRequesterSSN()),
+                new Label("Deceased Name: " + requestForm.getDeceasedName()),
+                new Label("Deceased Address: " + requestForm.getDeceasedAddress()),
+                new Label("Date of Death: " + requestForm.getDateOfDeath().toString()),
+                new Label("Country of Origin: " + requestForm.getCountryOfOrigin())
         );
+
+        // PDF Placeholder
+        Label pdfNote = new Label("[PDF Attached: " + requestForm.getDeathRecordFile().getName() + "]");
+        pdfNote.setStyle("-fx-font-style: italic; -fx-text-fill: gray;");
+        infoBox.getChildren().add(pdfNote);
 
         HBox topContainer = new HBox(infoBox);
         topContainer.setAlignment(Pos.TOP_LEFT);
@@ -101,18 +114,22 @@ public class ApprovalScreen extends Application {
         VBox vbox = new VBox(15);
         vbox.setPadding(new Insets(15));
         vbox.setAlignment(Pos.CENTER);
+
         Label instructionLabel = new Label("Please provide the reason for denial:");
         TextArea reasonArea = new TextArea();
         reasonArea.setPrefRowCount(3);
         reasonArea.setWrapText(true);
         reasonArea.setPromptText("Enter denial reason here...");
+
         Button submitButton = new Button("Submit");
         submitButton.setOnAction(e -> {
             String denialReason = reasonArea.getText();
             System.out.println("Request Denied. Reason: " + denialReason);
             denialStage.close();
         });
+
         vbox.getChildren().addAll(instructionLabel, reasonArea, submitButton);
+
         Scene scene = new Scene(vbox, 350, 200);
         denialStage.setScene(scene);
         denialStage.show();
@@ -122,4 +139,3 @@ public class ApprovalScreen extends Application {
         launch(args);
     }
 }
-
