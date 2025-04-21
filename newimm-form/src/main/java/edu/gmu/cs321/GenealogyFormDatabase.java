@@ -5,12 +5,10 @@ import java.sql.*;
 import java.util.Date;
 import java.util.UUID;
 
-import edu.gmu.cs321.GenealogyRequestForm;
-
 public class GenealogyFormDatabase {
     private static final String URL = "jdbc:mysql://localhost:3306/cs321";
     private static final String USER = "root";
-    private static final String PASSWORD = "";
+    private static final String PASSWORD = "#Addison989";
 
     public static Connection getConnection() {
         try {

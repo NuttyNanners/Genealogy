@@ -13,7 +13,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import main.java.edu.gmu.cs321.GenealogyFormDatabase;
 
 import java.io.File;
 import java.io.FileInputStream;
