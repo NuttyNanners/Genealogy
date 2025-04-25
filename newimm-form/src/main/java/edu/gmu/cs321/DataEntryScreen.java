@@ -1,11 +1,11 @@
-package edu.gmu.cs321;
+package org.openjfx;
 
+import com.cs321.Workflow;
 import java.io.File;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Date;
-
+import java.util.Locale;
+import java.util.UUID;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -29,9 +29,43 @@ public class DataEntryScreen extends Application {
 
     private final List<GenealogyRequestForm> reviewerQueue = new ArrayList<>();
 
-    private Date convertToDate(LocalDate localDate) {
-    return java.sql.Date.valueOf(localDate);
+    private boolean validateForm() {
+        if (requesterNameField.getText().isEmpty() ||
+            requesterAddressField.getText().isEmpty() ||
+            requesterSSNField.getText().isEmpty() ||
+            deceasedNameField.getText().isEmpty() ||
+            deceasedAddressField.getText().isEmpty() ||
+            deathDatePicker.getValue() == null ||
+            countryBox.getValue() == null ||
+            proofOfRelationshipFile == null ||
+            deathRecordFile == null) {
+            
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Form Incomplete");
+            alert.setHeaderText("Missing Required Fields");
+            alert.setContentText("Please fill out all fields and upload all required files before submitting.");
+            alert.showAndWait();
+            
+            return false;
+        }
+        return true;
     }
+
+    private List<String> getAllCountries() {
+    List<String> countries = new ArrayList<>();
+    String[] locales = Locale.getISOCountries();
+    for (String countryCode : locales) {
+        Locale obj = new Locale("", countryCode);
+        String countryName = obj.getDisplayCountry();
+        if (!countryName.equalsIgnoreCase("United States")) {
+            countries.add(countryName);
+        }
+    }
+    countries.sort(String::compareTo);
+    return countries;
+}
+
+    
 
     @Override
     public void start(Stage primaryStage) {
@@ -41,20 +75,14 @@ public class DataEntryScreen extends Application {
         root.setPadding(new Insets(20));
         root.setStyle("-fx-background-color: #1e1e1e;");
 
-        // Section: Requester Information
         TitledPane requesterPane = createRequesterInfoSection();
         TitledPane deceasedPane = createDeceasedInfoSection();
         TitledPane recordsPane = createSupportingRecordsSection();
 
-        // Buttons
         HBox buttonBox = new HBox(10);
-        Button saveButton = new Button("Save Progress");
         Button submitButton = new Button("Submit");
-
-        saveButton.setStyle("-fx-background-color: #555555; -fx-text-fill: white;");
         submitButton.setStyle("-fx-background-color: #b22222; -fx-text-fill: white;");
-
-        buttonBox.getChildren().addAll(saveButton, submitButton);
+        buttonBox.getChildren().addAll(submitButton);
 
         root.getChildren().addAll(requesterPane, deceasedPane, recordsPane, buttonBox);
 
@@ -62,23 +90,37 @@ public class DataEntryScreen extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
 
-        
-
         submitButton.setOnAction(e -> {
+            
+            if (!validateForm()) {
+                return;
+            }
+
             GenealogyRequestForm form = new GenealogyRequestForm(
                 requesterNameField.getText(),
                 requesterAddressField.getText(),
                 requesterSSNField.getText(),
                 deceasedNameField.getText(),
                 deceasedAddressField.getText(),
-                convertToDate(deathDatePicker.getValue()),
+                deathDatePicker.getValue(),
                 countryBox.getValue(),
                 proofOfRelationshipFile,
                 deathRecordFile
-
             );
-        
+
             reviewerQueue.add(form);
+            DatabaseUtil.insertForm(form);
+
+            try {
+                Workflow workflow = new Workflow();
+                int formID = Math.abs(UUID.randomUUID().toString().hashCode());
+                int result = workflow.AddWFItem(formID, "Review");
+                System.out.println("Workflow Add Result: " + result);
+                workflow.closeConnection();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+
             System.out.println("Form submitted and added to reviewer queue.");
             System.out.println("Current Queue Size: " + reviewerQueue.size());
             System.out.println("Last Added: " + form);
@@ -86,75 +128,66 @@ public class DataEntryScreen extends Application {
     }
 
     private TitledPane createRequesterInfoSection() {
-        GridPane grid = createGrid();
-
         requesterNameField = new TextField();
         requesterAddressField = new TextField();
         requesterSSNField = new TextField();
 
-        addToGrid(grid, "Full Name:", requesterNameField, 0);
+        GridPane grid = createGrid();
+        addToGrid(grid, "Name:", requesterNameField, 0);
         addToGrid(grid, "Address:", requesterAddressField, 1);
         addToGrid(grid, "SSN:", requesterSSNField, 2);
 
-        TitledPane pane = new TitledPane("Requester Information", grid);
-        pane.setExpanded(true);
-        return pane;
+        return new TitledPane("Requester Info", grid);
     }
 
     private TitledPane createDeceasedInfoSection() {
-        GridPane grid = createGrid();
-
         deceasedNameField = new TextField();
         deceasedAddressField = new TextField();
         deathDatePicker = new DatePicker();
         countryBox = new ComboBox<>();
-        countryBox.getItems().addAll("Select Country", "Mexico", "Canada", "UK", "Other");
-        countryBox.getSelectionModel().selectFirst();
+        for (String country : getAllCountries()) {
+            countryBox.getItems().add(country);
+        }
+        
 
+        GridPane grid = createGrid();
         addToGrid(grid, "Full Name:", deceasedNameField, 0);
-        addToGrid(grid, "Address:", deceasedAddressField, 1);
+        addToGrid(grid, "Last Address:", deceasedAddressField, 1);
         addToGrid(grid, "Date of Death:", deathDatePicker, 2);
         addToGrid(grid, "Country of Origin:", countryBox, 3);
 
-        TitledPane pane = new TitledPane("Deceased Information", grid);
-        countryBox.setStyle("-fx-background-color:rgb(154, 136, 136); -fx-text-fill: white;");
-        pane.setExpanded(true);
-        return pane;
+        return new TitledPane("Deceased Info", grid);
     }
 
     private TitledPane createSupportingRecordsSection() {
-        GridPane grid = createGrid();
-
-        Button proofButton = new Button("Attach...");
-        Button deathButton = new Button("Attach...");
-
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.getExtensionFilters().addAll(
-            new FileChooser.ExtensionFilter("Image and PDF Files", "*.png", "*.jpg", "*.jpeg", "*.pdf")
-        );
-
-        proofButton.setOnAction(e -> {
+        Label relationshipLabel = new Label("No file selected");
+        Button chooseRelationshipFile = new Button("Choose Proof of Relationship");
+        chooseRelationshipFile.setOnAction(e -> {
+            FileChooser fileChooser = new FileChooser();
             File selectedFile = fileChooser.showOpenDialog(null);
             if (selectedFile != null) {
                 proofOfRelationshipFile = selectedFile;
-                proofButton.setText("Attached ✔");
+                relationshipLabel.setText(selectedFile.getName());
             }
         });
 
-        deathButton.setOnAction(e -> {
+        Label deathRecordLabel = new Label("No file selected");
+        Button chooseDeathRecordFile = new Button("Choose Death Record");
+        chooseDeathRecordFile.setOnAction(e -> {
+            FileChooser fileChooser = new FileChooser();
             File selectedFile = fileChooser.showOpenDialog(null);
             if (selectedFile != null) {
                 deathRecordFile = selectedFile;
-                deathButton.setText("Attached ✔");
+                deathRecordLabel.setText(selectedFile.getName());
             }
         });
 
-        addToGrid(grid, "Proof of Relationship:", proofButton, 0);
-        addToGrid(grid, "Death Record:", deathButton, 1);
+        VBox box = new VBox(10,
+            new HBox(10, chooseRelationshipFile, relationshipLabel),
+            new HBox(10, chooseDeathRecordFile, deathRecordLabel)
+        );
 
-        TitledPane pane = new TitledPane("Supporting Records", grid);
-        pane.setExpanded(true);
-        return pane;
+        return new TitledPane("Supporting Records", box);
     }
 
     private GridPane createGrid() {
@@ -162,19 +195,19 @@ public class DataEntryScreen extends Application {
         grid.setHgap(10);
         grid.setVgap(10);
         grid.setPadding(new Insets(10));
-        ColumnConstraints col1 = new ColumnConstraints();
-        col1.setPercentWidth(30);
-        ColumnConstraints col2 = new ColumnConstraints();
-        col2.setPercentWidth(70);
-        grid.getColumnConstraints().addAll(col1, col2);
         return grid;
     }
 
     private void addToGrid(GridPane grid, String label, Control field, int row) {
-        Label lbl = new Label(label);
-        lbl.setStyle("-fx-text-fill:rgb(46, 43, 43);");
-        field.setStyle("-fx-background-color: #2c2c2c; -fx-text-fill: white;");
-        grid.add(lbl, 0, row);
+        Label l = new Label(label);
+        l.setStyle("-fx-text-fill: black;");
+        field.setStyle(
+        "-fx-text-fill: black;" +
+        "-fx-border-color: #ccc;" +
+        "-fx-border-radius: 4;" +
+        "-fx-background-color: white;"
+        );
+        grid.add(l, 0, row);
         grid.add(field, 1, row);
     }
 
