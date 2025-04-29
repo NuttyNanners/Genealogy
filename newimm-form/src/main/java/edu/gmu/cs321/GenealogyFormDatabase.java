@@ -1,18 +1,33 @@
+/**
+ * GenealogyFormDatabase.java
+ * Name: Addison Klein
+ * G#01331326
+ * CS321-009
+ * Professor Steven Ernst
+ * Spring 2025
+ */
+
 package edu.gmu.cs321;
 
 import java.io.File;
 import java.sql.*;
-import java.util.Date;
-import java.util.UUID;
 
+/**
+ * Database helper for inserting forms and recording approvals/denials.
+ */
 public class GenealogyFormDatabase {
-    private static final String URL = "jdbc:mysql://localhost:3306/cs321";
-    private static final String USER = "root";
+    //JDBC connection parameters
+    private static final String URL      = "jdbc:mysql://localhost:3306/cs321";
+    private static final String USER     = "root";
     private static final String PASSWORD = "#Addison989";
 
+    /**
+     * Obtains a database connection.
+     * @return Connection or null upon failure.
+     */
     public static Connection getConnection() {
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
+            Class.forName("com.mysql.cj.jdbc.Driver"); //Ensures driver is loaded
             return DriverManager.getConnection(URL, USER, PASSWORD);
         } catch (Exception e) {
             e.printStackTrace();
@@ -20,22 +35,25 @@ public class GenealogyFormDatabase {
         }
     }
 
+    /**
+     * Inserts new form record into OD and OD_FormData tables.
+     * @param form the form data object
+     * @param formId the unique form UUID string
+     * @return true on success.
+     */
     public static boolean insertFormData(GenealogyRequestForm form, String formId) {
         String insertOD = "INSERT INTO OD (form_id) VALUES (?)";
         String insertFormData = """
             INSERT INTO OD_FormData (
-                form_id, requester_name, requester_address, requester_ssn,
-                deceased_name, deceased_address, death_date, country_of_origin,
-                proof_of_relationship_path, death_record_path
+              form_id, requester_name, requester_address, requester_ssn,
+              deceased_name, deceased_address, death_date, country_of_origin,
+              proof_of_relationship_path, death_record_path
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
-
         try (Connection conn = getConnection()) {
-            if (conn == null)
+            if (conn == null) 
                 return false;
-
-            conn.setAutoCommit(false);
-
+            conn.setAutoCommit(false);  // Starts the transaction
             try (PreparedStatement odStmt = conn.prepareStatement(insertOD);
                  PreparedStatement dataStmt = conn.prepareStatement(insertFormData)) {
 
@@ -54,66 +72,88 @@ public class GenealogyFormDatabase {
                 dataStmt.setString(10, form.getDeathRecordFile().getPath());
 
                 dataStmt.executeUpdate();
-                conn.commit();
+                conn.commit();      //Commits both inserts
                 return true;
             } catch (SQLException e) {
-                conn.rollback();
+                conn.rollback();        //If error detected, rollback
                 e.printStackTrace();
+                return false;
             }
-
-        } catch (SQLException e){
+        } catch (SQLException e) {
             e.printStackTrace();
+            return false;
         }
-
-        return false;
     }
 
-    public static GenealogyRequestForm getFormDataByID(String formId) {
-        String query = "SELECT * FROM OD_FormData WHERE form_id = ?";
-        try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setString(1, formId);
-            ResultSet rs = stmt.executeQuery();
+    /**
+     * Updates approval status and the denial reason in OD_FormData.
+     * @param formId the target form ID
+     * @param accepted true if accepted; false if denied
+     * @param denialReason the stated reason for denial, if denied
+     * @return true if successfully updated
+     */
+    public static boolean updateApproval(String formId, boolean accepted, String denialReason) {
+        String sql;
+        if (accepted)
+            sql = "UPDATE OD_FormData SET accepted = ? WHERE form_id = ?";
+        else
+            sql = "UPDATE OD_FormData SET accepted = ?, denial_reason = ? WHERE form_id = ?";
+    
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            if (rs.next()) {
-                return new GenealogyRequestForm(
-                    rs.getString("requester_name"),
-                    rs.getString("requester_address"),
-                    rs.getString("requester_ssn"),
-                    rs.getString("deceased_name"),
-                    rs.getString("deceased_address"),
-                    rs.getDate("death_date"),
-                    rs.getString("country_of_origin"),
-                    new File(rs.getString("proof_of_relationship_path")),
-                    new File(rs.getString("death_record_path"))
-                );
+            stmt.setBoolean(1, accepted);
+            if (accepted)
+                stmt.setString(2, formId);
+            else {
+                stmt.setString(2, denialReason);
+                stmt.setString(3, formId);
             }
 
+            int rows = stmt.executeUpdate();    // Number of rows affected; exactly one means success
+            System.out.println("updateApproval updated rows: " + rows);
+            return rows == 1;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Fetches the current approval status and denial reason of a given form.
+     * @param formId the UUID of the form
+     * @return ApprovalStatus object or null if error/not found
+     */
+    public static ApprovalStatus fetchApprovalStatus(String formId) {
+        String sql = "SELECT accepted, denial_reason FROM OD_FormData WHERE form_id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, formId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next())
+                    return new ApprovalStatus(
+                      rs.getBoolean("accepted"),
+                      rs.getString("denial_reason")
+                    );
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    public static void main(String[] args) {
-        String basePath = System.getProperty("user.dir") + File.separator + "data";
-        GenealogyRequestForm form = new GenealogyRequestForm(
-            "Gorilla Marco",
-            "123 Zootopia St",
-            "223-35-9999",
-            "Marco the Gorilla",
-            "456 Zoonited Road",
-            new java.util.Date(),
-            "USA",
-            new File(basePath, "gorilla.png"),
-            new File(basePath, "deathRecord.pdf")
-        );
-
-        //String formId = UUID.randomUUID().toString();
-        if (insertFormData(form, form.getFormID()))
-            System.out.println("Form inserted with ID: " + form.getFormID());
-
-        GenealogyRequestForm loaded = getFormDataByID(form.getFormID());
-        if (loaded != null)
-            System.out.println("Loaded form for: " + loaded.getRequesterName());
+    /**
+     * Holds approval flags and denial reason.
+     */
+    public static class ApprovalStatus {
+        private final boolean accepted;
+        private final String  denialReason;
+        public ApprovalStatus(boolean accepted, String denialReason) {
+            this.accepted      = accepted;
+            this.denialReason  = denialReason;
+        }
+        public boolean isAccepted()      { return accepted; }
+        public String  getDenialReason() { return denialReason; }
     }
 }
