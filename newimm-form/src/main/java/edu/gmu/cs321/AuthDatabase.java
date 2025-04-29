@@ -21,7 +21,7 @@ public class AuthDatabase {
     // JDBC parameters
     private static final String URL  = "jdbc:mysql://localhost:3306/cs321?serverTimezone=UTC";
     private static final String USER = "root";
-    private static final String PASS = "#Addison989";
+    private static final String PASS = "";
 
     static {
         try {
